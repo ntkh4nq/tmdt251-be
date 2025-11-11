@@ -1,0 +1,26 @@
+# === Core ===
+fastapi
+uvicorn[standard]
+pydantic[email]
+python-dotenv
+SQLAlchemy
+psycopg2-binary
+asyncpg
+cloudinary
+alembic
+redis
+
+# === Auth & Email ===
+passlib[bcrypt]
+pyotp
+email-validator
+fastapi-mail
+jinja2
+
+# === Dev & Testing ===
+pytest
+httpx
+black
+isort
+flake8
+mypy
