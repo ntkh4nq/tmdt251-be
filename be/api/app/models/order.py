@@ -1,8 +1,9 @@
 import datetime, enum
 from typing import List
-from sqlalchemy import ForeignKey, String, DateTime, Text, Float, Integer, Boolean, UniqueConstraint, Enum as SQLEnum
+from sqlalchemy import ForeignKey, String, DateTime, Float, Integer, UniqueConstraint, Enum as SQLEnum
 from sqlalchemy.sql import func
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from .base import Base
 
 class Order_Status(enum.Enum):
     PENDING = "pending"
@@ -31,9 +32,6 @@ class Shipment_Status(enum.Enum):
     PREPARING = "preparing"
     SHIPPING = "shipping"
     DELIVERED = "delivered"
-
-class Base(DeclarativeBase):
-    pass
 
 class Order(Base):
     __tablename__ = "orders"
