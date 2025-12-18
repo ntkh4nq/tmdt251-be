@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.services.utils import create_tables
-from app.routes import user
+from app.routes import user, order
 from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await create_tables()
+    #await create_tables()
     yield
 
 app = FastAPI(lifespan=lifespan)
@@ -20,6 +20,7 @@ app.add_middleware(
 )
 
 app.include_router(user.router)
+app.include_router(order.router)
 
 @app.get("/")
 async def root():

@@ -90,3 +90,5 @@ class OrderItem(Base):
 
     order: Mapped["Order"] = relationship(back_populates="items", lazy="selectin")
     product: Mapped["Product"] = relationship(back_populates="in_orders", lazy="selectin")
+
+

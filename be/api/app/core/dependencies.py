@@ -19,6 +19,15 @@ def get_settings():
         "ACCESS_TOKEN_EXPIRE_MINUTES": int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")),
         "REFRESH_TOKEN_EXPIRE_DAYS": int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS"))
     }
+
+def get_vnpay_config():
+    return {
+        "vnp_TmnCode": os.getenv("VNP_TMNCODE"),
+        "vnp_HashSecret": os.getenv("VNP_HASHSECRET"),
+        "vnp_Url": os.getenv("VNP_URL"),
+        "vnp_ReturnUrl": os.getenv("VNP_RETURNURL"),
+        "vnp_ExpiredDate": os.getenv("VNP_EXPIRED")
+    }
     
 engine = create_async_engine(os.getenv("DATABASE_URL"))
 AsyncSessionLocal = async_sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
