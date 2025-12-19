@@ -21,7 +21,7 @@ class vnpay:
                 queryString = key + '=' + urllib.parse.quote_plus(str(val))
 
         hashValue = self.__hmacsha512(self.secret_key, queryString)
-        return self.vnpay_payment_url + "?" + queryString + '&vnp_SecureHash=' + hashValue
+        return {"payment_url": self.vnpay_payment_url + "?" + queryString + '&vnp_SecureHash=' + hashValue}
 
     def validate_response(self, responseData):
         vnp_SecureHash = responseData['vnp_SecureHash']
