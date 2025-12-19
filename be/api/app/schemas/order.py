@@ -14,6 +14,11 @@ class PaymentURLRequest(BaseModel):
     vnp_Locale: str = Field(min_length=2, max_length=5, default="vn")
     vnp_OrderInfo: str = Field(..., min_length=1, max_length=255)
     vnp_OrderType: str = Field(min_length=1, max_length=100, default="other")
-    vnp_ReturnUrl: str = Field(..., min_length=10, max_length=255)
+    vnp_ReturnUrl: str = Field(min_length=10, max_length=255, default="http://localhost:8000/order/payment_return")
     #vnp_ExpiredDate: datetime = Field(..., default_factory=datetime.now())
     vnp_TxnRef: str = Field(..., min_length=1, max_length=100)
+
+class PaymentUrlOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    payment_url: str
