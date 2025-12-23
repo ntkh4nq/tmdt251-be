@@ -2,6 +2,12 @@ from pydantic import BaseModel, EmailStr, ConfigDict, Field
 from datetime import datetime
 from typing import List, Optional
 
+class GoogleUserInfo(BaseModel):
+    email: EmailStr
+    name: str
+    picture: Optional[str] = None
+    google_id: str
+
 class UserBase(BaseModel):
     fullname: str = Field(..., min_length=1, max_length=255, description="User full name")
     email: EmailStr = Field(..., description="Unique email addr")
