@@ -18,9 +18,10 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    password_hashed: Mapped[str] = mapped_column(String(255), nullable=False)
+    password_hashed: Mapped[str] = mapped_column(String(255), nullable=True)
     fullname: Mapped[str] = mapped_column(String(255), nullable=False)
     phone: Mapped[str] = mapped_column(String(255), unique=True, nullable=True)
+    google_id: Mapped[str] = mapped_column(String(255), unique=True, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

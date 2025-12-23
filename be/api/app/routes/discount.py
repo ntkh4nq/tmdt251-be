@@ -4,7 +4,7 @@ from sqlalchemy import select
 from typing import List
 
 from app.core.dependencies import get_db
-from app.models.catalog_product import Discount
+from app.models.discount import Discount
 from app.schemas.discount import DiscountCreate, DiscountOut
 from app.services.utils import commit_to_db
 

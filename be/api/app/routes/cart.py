@@ -5,7 +5,7 @@ from sqlalchemy import select, and_
 from app.core.dependencies import get_db, get_current_user
 from app.models.user import User
 from app.models.cart import Cart, CartItem
-from app.models.catalog_product import Product
+from app.models.product import Product
 from app.schemas.cart import CartOut, CartItemCreate, CartItemUpdate, CartItemOut
 from app.services.utils import commit_to_db
 
