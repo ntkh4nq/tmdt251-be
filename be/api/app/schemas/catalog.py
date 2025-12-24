@@ -77,6 +77,13 @@ class ProductIngredientOut(ProductIngredientBase):
     model_config = ConfigDict(from_attributes=True)
 
 # --- Product ---
+class Nutrition(BaseModel):
+    calories: float
+    protein: float
+    carbs: float
+    fat: float
+    fiber: Optional[float] = 0
+
 class ProductBase(BaseModel):
     name: str = Field(..., max_length=255)
     description: str
@@ -86,6 +93,7 @@ class ProductBase(BaseModel):
     image_url: Optional[str] = None
     is_active: bool = True
     category_id: int
+    nutritions: Optional[Nutrition] = None
 
 class ProductCreate(ProductBase):
     tags: Optional[List[int]] = [] # List of Tag IDs
@@ -100,6 +108,7 @@ class ProductUpdate(BaseModel):
     image_url: Optional[str] = None
     is_active: Optional[bool] = None
     category_id: Optional[int] = None
+    nutritions: Optional[Nutrition] = None
     tags: Optional[List[int]] = None
 
 class ProductOut(ProductBase):
