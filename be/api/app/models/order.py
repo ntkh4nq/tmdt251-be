@@ -59,7 +59,7 @@ class Order(Base):
     status: Mapped[Order_Status] = mapped_column(
         SQLEnum(Order_Status, name="order_status"), default=Order_Status.PENDING
     )
-    payment_status: Mapped[Payment_Status] = mapped_column(
+    payment_status: Mapped[Order_Payment_Status] = mapped_column(
         SQLEnum(Order_Payment_Status, name="order_payment_status"),
         default=Order_Payment_Status.UNPAID,
     )

@@ -1,0 +1,1005 @@
+{
+	"info": {
+		"_postman_id": "e-commerce-api-tests",
+		"name": "E-Commerce API Tests",
+		"description": "Comprehensive API testing collection for E-Commerce backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Categories",
+			"item": [
+				{
+					"name": "Create Root Category",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has id\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.environment.set(\"category_id\", jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Electronics\",\n  \"description\": \"Electronic products and devices\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/catalog/categories",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "categories"]
+						}
+					}
+				},
+				{
+					"name": "Create Child Category",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Laptops\",\n  \"description\": \"Laptop computers\",\n  \"parent_id\": {{category_id}}\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/catalog/categories",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "categories"]
+						}
+					}
+				},
+				{
+					"name": "List Categories",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/categories?skip=0&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "categories"],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Category by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/categories/{{category_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "categories", "{{category_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Category",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"description\": \"Updated description for electronics\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/catalog/categories/{{category_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "categories", "{{category_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Category",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/categories/{{category_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "categories", "{{category_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Tags",
+			"item": [
+				{
+					"name": "Create Tag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"tag_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Best Seller\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/catalog/tags",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "tags"]
+						}
+					}
+				},
+				{
+					"name": "Create Tag - New Arrival",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"New Arrival\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/catalog/tags",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "tags"]
+						}
+					}
+				},
+				{
+					"name": "Create Tag - Sale",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sale\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/catalog/tags",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "tags"]
+						}
+					}
+				},
+				{
+					"name": "List Tags",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/tags?skip=0&limit=100",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "tags"],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "100"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Tag by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/tags/{{tag_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "tags", "{{tag_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Tag",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/tags/{{tag_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "tags", "{{tag_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Ingredients",
+			"item": [
+				{
+					"name": "Create Ingredient - Aluminum",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"ingredient_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Aluminum\",\n  \"unit\": \"kg\",\n  \"price_per_unit\": 50.0,\n  \"calories_per_unit\": 0,\n  \"stock_quantity\": 1000\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/catalog/ingredients",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "ingredients"]
+						}
+					}
+				},
+				{
+					"name": "Create Ingredient - Plastic",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Plastic\",\n  \"unit\": \"kg\",\n  \"price_per_unit\": 30.0,\n  \"calories_per_unit\": 0,\n  \"stock_quantity\": 2000\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/catalog/ingredients",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "ingredients"]
+						}
+					}
+				},
+				{
+					"name": "List Ingredients",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/ingredients?skip=0&limit=100",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "ingredients"],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "100"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Ingredient by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/ingredients/{{ingredient_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "ingredients", "{{ingredient_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Ingredient Stock",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/ingredients/{{ingredient_id}}/stock?quantity=500",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "ingredients", "{{ingredient_id}}", "stock"],
+							"query": [
+								{
+									"key": "quantity",
+									"value": "500"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Ingredient",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/ingredients/{{ingredient_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "ingredients", "{{ingredient_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Products",
+			"item": [
+				{
+					"name": "Create Product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"product_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"MacBook Pro 16\",\n  \"description\": \"High-performance laptop for professionals with M3 Pro chip\",\n  \"price\": 2499.99,\n  \"stock\": 50,\n  \"image_url\": \"https://example.com/mbp16.jpg\",\n  \"is_active\": true,\n  \"category_id\": {{category_id}},\n  \"tags\": [1, 2],\n  \"ingredients\": [\n    {\n      \"ingredient_id\": 1,\n      \"min_percentage\": 10,\n      \"max_percentage\": 20\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/catalog/products",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "products"]
+						}
+					}
+				},
+				{
+					"name": "List All Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/products?skip=0&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "products"],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "List Products by Category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/products?category_id={{category_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "products"],
+							"query": [
+								{
+									"key": "category_id",
+									"value": "{{category_id}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Search Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/products?search=macbook",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "products"],
+							"query": [
+								{
+									"key": "search",
+									"value": "macbook"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Product by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/products/{{product_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "products", "{{product_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"price\": 2399.99,\n  \"description\": \"Updated description with special offer\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/catalog/products/{{product_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "products", "{{product_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Product Stock",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/products/{{product_id}}/stock?stock=45",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "products", "{{product_id}}", "stock"],
+							"query": [
+								{
+									"key": "stock",
+									"value": "45"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Soft Delete Product",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/products/{{product_id}}?hard_delete=false",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "products", "{{product_id}}"],
+							"query": [
+								{
+									"key": "hard_delete",
+									"value": "false"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Hard Delete Product",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/products/{{product_id}}?hard_delete=true",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "products", "{{product_id}}"],
+							"query": [
+								{
+									"key": "hard_delete",
+									"value": "true"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Product Variants",
+			"item": [
+				{
+					"name": "Create Variant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"variant_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"16GB RAM / 512GB SSD\",\n  \"sku\": \"MBP16-16-512\",\n  \"price\": 2499.99,\n  \"stock\": 20\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/catalog/products/{{product_id}}/variants",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "products", "{{product_id}}", "variants"]
+						}
+					}
+				},
+				{
+					"name": "Create Variant - 32GB",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"32GB RAM / 1TB SSD\",\n  \"sku\": \"MBP16-32-1TB\",\n  \"price\": 2999.99,\n  \"stock\": 15\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/catalog/products/{{product_id}}/variants",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "products", "{{product_id}}", "variants"]
+						}
+					}
+				},
+				{
+					"name": "List Variants for Product",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/products/{{product_id}}/variants",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "products", "{{product_id}}", "variants"]
+						}
+					}
+				},
+				{
+					"name": "Update Variant Stock",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/products/{{product_id}}/variants/{{variant_id}}/stock?stock=15",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "products", "{{product_id}}", "variants", "{{variant_id}}", "stock"],
+							"query": [
+								{
+									"key": "stock",
+									"value": "15"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Variant",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/products/{{product_id}}/variants/{{variant_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "products", "{{product_id}}", "variants", "{{variant_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "6. Cart",
+			"item": [
+				{
+					"name": "Get My Cart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"cart_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cart",
+							"host": ["{{base_url}}"],
+							"path": ["cart"]
+						}
+					}
+				},
+				{
+					"name": "Add Item to Cart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"cart_item_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"product_id\": {{product_id}},\n  \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/cart/items",
+							"host": ["{{base_url}}"],
+							"path": ["cart", "items"]
+						}
+					}
+				},
+				{
+					"name": "Get Cart with Items",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cart",
+							"host": ["{{base_url}}"],
+							"path": ["cart"]
+						}
+					}
+				},
+				{
+					"name": "Update Cart Item Quantity",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"quantity\": 3\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/cart/items/{{cart_item_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["cart", "items", "{{cart_item_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Remove Item from Cart",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cart/items/{{cart_item_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["cart", "items", "{{cart_item_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "7. Orders",
+			"item": [
+				{
+					"name": "Create Order from Cart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"order_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"shipping_address_id\": 1,\n  \"payment_method\": \"credit_card\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/order",
+							"host": ["{{base_url}}"],
+							"path": ["order"]
+						}
+					}
+				},
+				{
+					"name": "List My Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/order",
+							"host": ["{{base_url}}"],
+							"path": ["order"]
+						}
+					}
+				},
+				{
+					"name": "Get Order Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/order/{{order_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["order", "{{order_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "8. Edge Cases",
+			"item": [
+				{
+					"name": "Invalid Category ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/categories/99999",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "categories", "99999"]
+						}
+					}
+				},
+				{
+					"name": "Duplicate Category Name",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Electronics\",\n  \"description\": \"Duplicate test\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/catalog/categories",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "categories"]
+						}
+					}
+				},
+				{
+					"name": "Pagination Limit Exceeded",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/catalog/products?skip=0&limit=1000",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "products"],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "limit",
+									"value": "1000"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Invalid Product Category",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Product\",\n  \"description\": \"Test\",\n  \"price\": 100,\n  \"stock\": 10,\n  \"image_url\": \"https://test.com/img.jpg\",\n  \"category_id\": 9999\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/catalog/products",
+							"host": ["{{base_url}}"],
+							"path": ["catalog", "products"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000",
+			"type": "string"
+		}
+	]
+}

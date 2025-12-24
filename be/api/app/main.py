@@ -2,19 +2,30 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.sessions import SessionMiddleware
 from app.services.utils import create_tables
-from app.routes import user, order, catalog, engagement, cart, address, discount
+from app.routes import user, order, engagement, cart, address, discount, category, product, variant, ingredient, tag
 from contextlib import asynccontextmanager
 import traceback
+import os
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await create_tables()
     yield
 
 
 app = FastAPI(lifespan=lifespan)
+
+# Add SessionMiddleware for OAuth (must be before CORSMiddleware)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SEC_KEY"),
+    session_cookie="session",  # tên cookie
+    max_age=3600,  # 1 giờ
+    same_site="lax",  # cho phép redirect
+    https_only=False  # vì đang dùng http://
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,7 +37,11 @@ app.add_middleware(
 
 app.include_router(user.router)
 app.include_router(order.router)
-app.include_router(catalog.router)
+app.include_router(category.router)
+app.include_router(product.router)
+app.include_router(variant.router)
+app.include_router(ingredient.router)
+app.include_router(tag.router)
 app.include_router(engagement.router)
 app.include_router(cart.router)
 app.include_router(address.router)
