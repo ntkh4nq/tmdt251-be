@@ -7,6 +7,7 @@ from sqlalchemy import (
     Integer,
     Boolean,
     UniqueConstraint,
+    JSON
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import Base
@@ -23,7 +24,8 @@ class Product(Base):
     model_file: Mapped[str] = mapped_column(Text, nullable=True)
     image_url: Mapped[str] = mapped_column(Text, unique=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-
+    
+    nutritions: Mapped[dict] = mapped_column(JSON, nullable=True, default={})
     category_id: Mapped[int] = mapped_column(
         ForeignKey("categories.id", ondelete="restrict"), nullable=False
     )

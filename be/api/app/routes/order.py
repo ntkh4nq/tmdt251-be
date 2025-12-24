@@ -5,14 +5,20 @@ from app.core.dependencies import get_vnpay_config, get_db, get_current_user
 from app.schemas.order import PaymentURLRequest, PaymentUrlOut, OrderOut, OrderCreate
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy import select
 from app.models.vnpay import vnpay
 from app.models.order import Order, Order_Status, OrderItem, Order_Payment_Status
 from app.services.utils import commit_to_db
 from app.models.cart import Cart, CartItem
 from app.models.user import User, Address
 from typing import List
+from app.models.order import Order, OrderItem
+from app.models.cart import Cart, CartItem
+from app.models.user import User, Address
+from typing import List
 
 router = APIRouter(prefix="/order", tags=["Order"])
+
 
 
 @router.post("/payment_url", response_model=PaymentUrlOut)
@@ -30,6 +36,7 @@ def payment_url(
         "vnp_TmnCode": vnpay_config["vnp_TmnCode"].strip(),
         "vnp_Amount": data.vnp_Amount,
         "vnp_CreateDate": created_date.strftime("%Y%m%d%H%M%S"),
+        "vnp_CreateDate": created_date.strftime("%Y%m%d%H%M%S"),
         "vnp_CurrCode": data.vnp_CurrCode,
         "vnp_IpAddr": data.vnp_IpAddr,
         "vnp_Locale": data.vnp_Locale,
@@ -45,7 +52,7 @@ def payment_url(
 
     payment_url = Vnpay.get_payment_url(req)
     print(f"debug: request goc: {req}")
-    # print(f"DEBUG: url: {url}")
+    #  print(f"DEBUG: url: {url}")
     return PaymentUrlOut.model_validate(payment_url)
 
 
