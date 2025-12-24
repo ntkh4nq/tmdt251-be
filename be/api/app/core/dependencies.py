@@ -82,3 +82,21 @@ async def get_current_user(
         raise credentials_exception
 
     return user
+
+
+async def get_current_admin_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    is_admin = False
+    for user_role in current_user.user_roles:
+        if user_role.role.name == "admin":
+            is_admin = True
+            break
+    
+    if not is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The user doesn't have enough privileges",
+        )
+    return current_user
+
