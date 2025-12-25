@@ -78,3 +78,7 @@ class OrderCreate(BaseModel):
     # I'll stick to a simple creation triggering from Cart if no items passed, or something?
     # Or just standard "create order from cart" endpoint.
     pass
+
+
+class OrderStatusUpdate(BaseModel):
+    status: str

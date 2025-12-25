@@ -2,7 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Body
 from fastapi.responses import RedirectResponse, JSONResponse
 from datetime import datetime, timedelta, timezone
 from app.core.dependencies import get_vnpay_config, get_db, get_current_user
-from app.schemas.order import PaymentURLRequest, PaymentUrlOut, OrderOut, OrderCreate
+from app.schemas.order import (
+    PaymentURLRequest,
+    PaymentUrlOut,
+    OrderOut,
+    OrderCreate,
+    OrderStatusUpdate,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy import select
@@ -18,7 +24,6 @@ from app.models.user import User, Address
 from typing import List
 
 router = APIRouter(prefix="/order", tags=["Order"])
-
 
 
 @router.post("/payment_url", response_model=PaymentUrlOut)
@@ -60,7 +65,7 @@ def payment_url(
 async def payment_return(
     request: Request,
     vnpay_config: dict = Depends(get_vnpay_config),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Payment return URL - validates and updates order status for demo.
@@ -68,21 +73,21 @@ async def payment_return(
     """
     data = request.query_params
     response = {k: v for k, v in data.items()}
-    
+
     Vnpay = vnpay(
         secret_key=vnpay_config["vnp_HashSecret"],
         vnpay_payment_url=vnpay_config["vnp_Url"],
     )
-    
+
     # Validate signature
     if not Vnpay.validate_response(response):
         return "❌ Thanh toán thất bại - Chữ ký không hợp lệ"
-    
+
     # Extract params
     payment_status = response.get("vnp_ResponseCode")
     txn_ref = response.get("vnp_TxnRef")
     amount = int(response.get("vnp_Amount", 0))
-    
+
     # Parse order_id from txn_ref
     try:
         if txn_ref.startswith("ORDER"):
@@ -91,19 +96,19 @@ async def payment_return(
             order_id = int(txn_ref)
     except (ValueError, AttributeError):
         return "❌ Mã giao dịch không hợp lệ"
-    
+
     # Query order
     result = await db.execute(select(Order).where(Order.id == order_id))
     order = result.scalar_one_or_none()
-    
+
     if not order:
         return "❌ Không tìm thấy đơn hàng"
-    
+
     # Check amount matches
     expected_amount = int(order.total_amount * 100)
     if amount != expected_amount:
         return f"❌ Số tiền không khớp (Expected: {expected_amount}, Got: {amount})"
-    
+
     # Update order status (idempotent check)
     if order.payment_status != Order_Payment_Status.PAID:
         if payment_status == "00":
@@ -116,7 +121,9 @@ async def payment_return(
             order.status = Order_Status.CANCELLED
             order.payment_status = Order_Payment_Status.UNPAID
             await commit_to_db(db)
-            print(f"❌ [Payment Return] Order #{order_id} payment failed, code: {payment_status}")
+            print(
+                f"❌ [Payment Return] Order #{order_id} payment failed, code: {payment_status}"
+            )
             return f"❌ Thanh toán thất bại. Mã lỗi: {payment_status}"
     else:
         return f"✅ Đơn hàng #{order_id} đã được thanh toán trước đó."
@@ -135,11 +142,11 @@ async def payment_ipn(
         secret_key=vnpay_config["vnp_HashSecret"],
         vnpay_payment_url=vnpay_config["vnp_Url"],
     )
-    
+
     # Validate request
     if not response:
         return JSONResponse({"RspCode": "99", "Message": "Invalid request"})
-    
+
     if not Vnpay.validate_response(response):
         return JSONResponse({"RspCode": "97", "Message": "Invalid Signature"})
 
@@ -147,7 +154,7 @@ async def payment_ipn(
     payment_status = response.get("vnp_ResponseCode")
     txn_ref = response.get("vnp_TxnRef")  # e.g., "ORDER123" or just order_id
     amount = int(response.get("vnp_Amount", 0))
-    
+
     # Parse order_id from txn_ref
     # Assuming format: "ORDER{order_id}" or just "{order_id}"
     try:
@@ -157,25 +164,23 @@ async def payment_ipn(
             order_id = int(txn_ref)
     except (ValueError, AttributeError):
         return JSONResponse({"RspCode": "01", "Message": "Invalid TxnRef"})
-    
+
     # Query order
-    result = await db.execute(
-        select(Order).where(Order.id == order_id)
-    )
+    result = await db.execute(select(Order).where(Order.id == order_id))
     order = result.scalar_one_or_none()
-    
+
     if not order:
         return JSONResponse({"RspCode": "01", "Message": "Order not found"})
-    
+
     # Check amount matches (VNPay amount is * 100)
     expected_amount = int(order.total_amount * 100)
     if amount != expected_amount:
         return JSONResponse({"RspCode": "04", "Message": "Invalid amount"})
-    
+
     # Check if already updated
     if order.payment_status == Order_Payment_Status.PAID:
         return JSONResponse({"RspCode": "02", "Message": "Order already updated"})
-    
+
     # Update order status based on payment result
     if payment_status == "00":
         # Payment success
@@ -189,9 +194,9 @@ async def payment_ipn(
         order.status = Order_Status.CANCELLED
         order.payment_status = Order_Payment_Status.UNPAID
         print(f"❌ Payment Failed for Order #{order_id}, Code: {payment_status}")
-    
+
     await commit_to_db(db)
-    
+
     return JSONResponse({"RspCode": "00", "Message": "Confirm Success"})
 
 
@@ -283,3 +288,49 @@ async def create_order(
     await commit_to_db(db)
     await db.refresh(new_order)
     return new_order
+
+
+@router.patch("/{id}/status", response_model=OrderOut)
+async def update_order_status(
+    id: int,
+    data: OrderStatusUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # 1. Get Order
+    result = await db.execute(select(Order).where(Order.id == id))
+    order = result.scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    # 2. Check Permissions
+    is_admin = False
+    if current_user.user_roles:
+        for ur in current_user.user_roles:
+            if ur.role.name == "admin":
+                is_admin = True
+                break
+
+    is_owner = order.user_id == current_user.id
+
+    if not (is_admin or is_owner):
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to update this order"
+        )
+
+    # 3. Validate Status
+    try:
+        new_status = Order_Status(data.status)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid status. Allowed: {[s.value for s in Order_Status]}",
+        )
+
+    # 4. Update
+    # Optional: State machine checks (e.g. can't go from delivered to pending)
+    # For now, just update.
+    order.status = new_status
+    await commit_to_db(db)
+    await db.refresh(order)
+    return order

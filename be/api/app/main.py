@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 from app.services.utils import create_tables
-from app.routes import user, order, engagement, cart, address, discount, category, product, variant, ingredient, tag
+from app.routes import user, order, engagement, cart, address, discount, category, product, variant, ingredient, tag, admin
 from contextlib import asynccontextmanager
 import traceback
 import os
@@ -47,6 +47,7 @@ app.include_router(engagement.router)
 app.include_router(cart.router)
 app.include_router(address.router)
 app.include_router(discount.router)
+app.include_router(admin.router)
 
 
 @app.exception_handler(StarletteHTTPException)
