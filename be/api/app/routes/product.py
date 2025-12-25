@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 
@@ -6,9 +6,27 @@ from app.core.dependencies import get_db
 from app.schemas.catalog import ProductCreate, ProductUpdate, ProductOut
 from app.services.product_service import ProductService
 from app.services.category_service import CategoryService
+from app.services.cloudinary_service import CloudinaryService
 
 router = APIRouter(prefix="/catalog/products", tags=["Products"])
 
+@router.post("/upload-image")
+async def upload_product_image(file: UploadFile = File(...)):
+    """
+    Upload product image to Cloudinary
+    
+    - Accepts: JPEG, PNG, WEBP
+    - Max size: 5MB
+    - Returns: image URL and metadata
+    """
+    result = await CloudinaryService.upload_image(file, folder="products")
+    return {
+        "success": True,
+        "image_url": result["url"],
+        "public_id": result["public_id"],
+        "width": result["width"],
+        "height": result["height"]
+    }
 
 @router.post("", response_model=ProductOut, status_code=status.HTTP_201_CREATED)
 async def create_product(
@@ -148,3 +166,6 @@ async def delete_product(
             detail=f"Product with id {product_id} not found"
         )
     return None
+
+
+
