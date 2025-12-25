@@ -7,8 +7,8 @@ from .base import Base
 
 
 class Discount_Type(enum.Enum):
-    percent: float
-    fixed: float
+    percent = "percent"
+    fixed = "fixed"
 
 
 class Discount(Base):
