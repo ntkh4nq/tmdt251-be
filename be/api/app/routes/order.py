@@ -11,16 +11,13 @@ from app.schemas.order import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from app.models.vnpay import vnpay
 from app.models.order import Order, Order_Status, OrderItem, Order_Payment_Status
 from app.services.utils import commit_to_db
 from app.models.cart import Cart, CartItem
 from app.models.user import User, Address
-from typing import List
-from app.models.order import Order, OrderItem
-from app.models.cart import Cart, CartItem
-from app.models.user import User, Address
+from app.services.email_service import EmailService
 from typing import List
 
 router = APIRouter(prefix="/order", tags=["Order"])
@@ -40,7 +37,6 @@ def payment_url(
         "vnp_Command": data.vnp_Command,
         "vnp_TmnCode": vnpay_config["vnp_TmnCode"].strip(),
         "vnp_Amount": data.vnp_Amount,
-        "vnp_CreateDate": created_date.strftime("%Y%m%d%H%M%S"),
         "vnp_CreateDate": created_date.strftime("%Y%m%d%H%M%S"),
         "vnp_CurrCode": data.vnp_CurrCode,
         "vnp_IpAddr": data.vnp_IpAddr,
@@ -116,7 +112,71 @@ async def payment_return(
             order.payment_status = Order_Payment_Status.PAID
             await commit_to_db(db)
             print(f"✅ [Payment Return] Order #{order_id} marked as PAID")
-            return f"✅ Thanh toán thành công! Đơn hàng #{order_id} đã được xác nhận."
+            
+            # Send confirmation email
+            try:
+                # Load order with relationships for email
+                result = await db.execute(
+                    select(Order)
+                    .options(
+                        selectinload(Order.items),
+                        selectinload(Order.user),
+                        selectinload(Order.address)
+                    )
+                    .where(Order.id == order_id)
+                )
+                order_with_details = result.scalar_one_or_none()
+                
+                if order_with_details and order_with_details.user:
+                    # Prepare order items for email
+                    email_items = []
+                    for item in order_with_details.items:
+                        email_items.append({
+                            'name': item.product_name if hasattr(item, 'product_name') else f"Product ID {item.product_id}",
+                            'quantity': item.quantity,
+                            'price': item.price if hasattr(item, 'price') else 0,
+                            'subtotal': (item.quantity * item.price) if hasattr(item, 'price') else 0
+                        })
+                    
+                    # Prepare shipping address
+                    shipping_address = {}
+                    if order_with_details.address:
+                        addr = order_with_details.address
+                        shipping_address = {
+                            'full_name': addr.full_name if hasattr(addr, 'full_name') else order_with_details.user.fullname,
+                            'phone': addr.phone if hasattr(addr, 'phone') else getattr(order_with_details.user, 'phone', ''),
+                            'address_line1': addr.address_line1 if hasattr(addr, 'address_line1') else '',
+                            'ward': addr.ward if hasattr(addr, 'ward') else '',
+                            'district': addr.district if hasattr(addr, 'district') else '',
+                            'city': addr.city if hasattr(addr, 'city') else '',
+                        }
+                    else:
+                        shipping_address = {
+                            'full_name': order_with_details.user.fullname,
+                            'phone': getattr(order_with_details.user, 'phone', ''),
+                            'address_line1': 'Chưa có thông tin',
+                            'ward': '',
+                            'district': '',
+                            'city': '',
+                        }
+                    
+                    # Send email
+                    email_service = EmailService()
+                    email_service.send_order_confirmation_email(
+                        to_email=order_with_details.user.email,
+                        order_id=order_id,
+                        customer_name=order_with_details.user.fullname,
+                        order_date=order_with_details.created_at,
+                        total_amount=order_with_details.total_amount,
+                        items=email_items,
+                        shipping_address=shipping_address
+                    )
+                    print(f"📧 [Payment Return] Confirmation email sent to {order_with_details.user.email}")
+            except Exception as e:
+                # Don't let email failure affect payment confirmation
+                print(f"⚠️ [Payment Return] Failed to send email for Order #{order_id}: {str(e)}")
+            
+            return f"✅ Thanh toán thành công! Đơn hàng #{order_id} đã được xác nhận. Email xác nhận đã được gửi."
         else:
             order.status = Order_Status.CANCELLED
             order.payment_status = Order_Payment_Status.UNPAID
@@ -186,16 +246,80 @@ async def payment_ipn(
         # Payment success
         order.status = Order_Status.PAID
         order.payment_status = Order_Payment_Status.PAID
-        # Optional: add paid_at timestamp if you have the field
-        # order.paid_at = datetime.now(timezone.utc)
+        
+        # Commit to database first
+        await commit_to_db(db)
         print(f"✅ Payment Success for Order #{order_id}")
+        
+        # Send confirmation email asynchronously (don't block IPN response)
+        try:
+            # Load order with relationships for email
+            result = await db.execute(
+                select(Order)
+                .options(
+                    selectinload(Order.items),
+                    selectinload(Order.user),
+                    selectinload(Order.address)
+                )
+                .where(Order.id == order_id)
+            )
+            order_with_details = result.scalar_one_or_none()
+            
+            if order_with_details and order_with_details.user:
+                # Prepare order items for email
+                email_items = []
+                for item in order_with_details.items:
+                    email_items.append({
+                        'name': item.product_name if hasattr(item, 'product_name') else f"Product ID {item.product_id}",
+                        'quantity': item.quantity,
+                        'price': item.price,
+                        'subtotal': item.quantity * item.price
+                    })
+                
+                # Prepare shipping address
+                shipping_address = {}
+                if order_with_details.address:
+                    addr = order_with_details.address
+                    shipping_address = {
+                        'full_name': addr.full_name if hasattr(addr, 'full_name') else order_with_details.user.full_name,
+                        'phone': addr.phone if hasattr(addr, 'phone') else order_with_details.user.phone,
+                        'address_line1': addr.address_line1 if hasattr(addr, 'address_line1') else '',
+                        'ward': addr.ward if hasattr(addr, 'ward') else '',
+                        'district': addr.district if hasattr(addr, 'district') else '',
+                        'city': addr.city if hasattr(addr, 'city') else '',
+                    }
+                else:
+                    shipping_address = {
+                        'full_name': order_with_details.user.full_name,
+                        'phone': order_with_details.user.phone if hasattr(order_with_details.user, 'phone') else '',
+                        'address_line1': 'N/A',
+                        'ward': '',
+                        'district': '',
+                        'city': '',
+                    }
+                
+                # Send email
+                email_service = EmailService()
+                email_service.send_order_confirmation_email(
+                    to_email=order_with_details.user.email,
+                    order_id=order_id,
+                    customer_name=order_with_details.user.full_name,
+                    order_date=order_with_details.created_at,
+                    total_amount=order_with_details.total_amount,
+                    items=email_items,
+                    shipping_address=shipping_address
+                )
+                print(f"📧 Confirmation email sent to {order_with_details.user.email}")
+        except Exception as e:
+            # Don't let email failure affect IPN response
+            print(f"⚠️ Failed to send email for Order #{order_id}: {str(e)}")
+            
     else:
         # Payment failed
         order.status = Order_Status.CANCELLED
         order.payment_status = Order_Payment_Status.UNPAID
+        await commit_to_db(db)
         print(f"❌ Payment Failed for Order #{order_id}, Code: {payment_status}")
-
-    await commit_to_db(db)
 
     return JSONResponse({"RspCode": "00", "Message": "Confirm Success"})
 
